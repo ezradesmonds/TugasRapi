@@ -11,4 +11,4 @@
 - Arsitektur: statis tanpa server/API/secret. Render input melalui textContent, localStorage ditulis sebelum state berubah, data rusak tidak ditimpa.
 - Kinerja: filter O(n), sort O(n log n), cocok untuk daftar tugas pribadi. Daftar sangat besar belum diuji.
 - Risiko: localStorage tidak terenkripsi, tanpa backup/sinkronisasi, edit beberapa tab belum disinkronkan. Browser selain Chrome dan audit aksesibilitas penuh belum diuji.
-- Pages dikonfigurasi dari main/root. Status live dicatat setelah pemeriksaan deployment.
+- Pages dikonfigurasi dari main/root. Job build, report-build-status, dan deploy run 37331883781 selesai sukses untuk e02dff0. URL https://ezradesmonds.github.io/TugasRapi/ berhasil dibuka di Chrome; contoh tugas tersimpan setelah reload dan log error yang tersedia kosong. Screenshot live disimpan sebagai deliverable.
