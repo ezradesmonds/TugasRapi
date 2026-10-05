@@ -1,0 +1,30 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const source = fs.readFileSync(__dirname + '/app.js', 'utf8').split('const dateLabel')[0];
+const task = {id:'test',title:'Laporan',course:'GenAI',deadline:'2026-10-06',priority:'high',done:false,notes:''};
+function harness(raw = null, failWrite = false) {
+  let stored = raw;
+  const notice = {textContent:''};
+  const context = vm.createContext({document:{querySelector:()=>notice},localStorage:{getItem:()=>stored,setItem:(_,value)=>{if(failWrite)throw Error('quota');stored=value;}},Date,console});
+  vm.runInContext(source,context);
+  return {run:code=>vm.runInContext(code,context),stored:()=>stored,notice};
+}
+const clean = harness();
+assert.equal(clean.run(`validTask(${JSON.stringify(task)})`),true);
+assert.equal(clean.run(`validTask(${JSON.stringify({...task,title:'   '})})`),false);
+assert.equal(clean.run("validDate('2026-02-30')"),false);
+assert.equal(clean.run("validDate('2028-02-29')"),true);
+assert.equal(clean.run(`save([${JSON.stringify(task)}])`),true);
+assert.equal(JSON.parse(clean.stored()).length,1);
+const corrupt = harness('{broken');
+assert.equal(corrupt.run(`save([${JSON.stringify(task)}])`),false);
+assert.equal(corrupt.stored(),'{broken');
+const duplicate = harness(JSON.stringify([task,task]));
+assert.equal(duplicate.run('storageBroken'),true);
+const quota = harness(JSON.stringify([task]),true);
+assert.equal(quota.run('save([])'),false);
+assert.equal(JSON.parse(quota.stored()).length,1);
+assert.equal(clean.run(`late(${JSON.stringify({...task,deadline:'2000-01-01'})})`),true);
+assert.equal(clean.run(`late(${JSON.stringify({...task,deadline:'2000-01-01',done:true})})`),false);
+console.log('PASS: validation, calendar dates, persistence, corrupt-data protection, duplicate IDs, write failure, overdue status.');
